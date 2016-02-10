@@ -1,0 +1,50 @@
+#Linear SVM Example
+
+# Data Creation
+set.seed(1)
+
+#Generating Training data for Linear
+x <- matrix(rnorm(20*2), ncol=2)
+y <- c(rep(-1,10), rep(1,10))
+x[y==1,]=x[y==1,] + 1
+dat <- data.frame(x=x, y=as.factor(y))
+
+
+#Create our own Linear test data
+xtest=matrix(rnorm(20*2), ncol=2)
+ytest=sample(c(-1,1), 20, rep=TRUE)
+xtest [ ytest ==1 ,]= xtest [ ytest ==1 ,] + 1
+testdat=data.frame(x=xtest, y=as.factor(ytest))
+
+
+#plot
+plot(x, col=y)
+
+#Package required
+library(e1071)
+
+# developing a SVMmodel
+svm.fit <- svm(y ~., data=dat, kernel='linear', cost=10, scale=FALSE)
+summary(svm.fit)
+
+# Plot the SVC obtained
+plot(svm.fit, dat)
+
+# developing a SVMmodel with cost changed
+svm.fit2 <- svm(y ~., data=dat, kernel = 'linear',cost=1, scale=FALSE)
+summary(svm.fit2)
+
+# Plot the SVC obtained
+plot(svm.fit2, dat)
+
+# SVM Tuning
+tune.out <- tune(svm, y ~., data=dat, kernel='linear',ranges=list(cost=c(0.001,0.01,0.1,1,5,10,100)))
+summary(tune.out)
+
+#Predicting using the best Model
+yhat <- predict(tune.out$best.model, testdat)
+
+library(caret)
+
+#Confusion Matrix
+confusionMatrix(yhat, testdat$y)
