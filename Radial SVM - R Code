@@ -1,0 +1,48 @@
+#Generating Training data for Radial
+set.seed (1)
+x <- matrix(rnorm(200*2), ncol=2)
+x[1:100,]=x[1:100,]+2
+x[101:150,]=x[101:150,]-2
+
+y <- c(rep(1,150),rep(2,50))
+dat <- data.frame(x=x,y=as.factor(y))
+
+#plot
+plot(x, col=y)
+
+set.seed(1)
+train <- sample(200, 100)
+
+# developing a SVMmodel
+svm.fit <- svm(y ~., data=dat[train,], kernel='radial', gamma=1, cost=1)
+#plot
+plot(svm.fit, dat[train,])
+summary(svm.fit)
+#Predicting using the best Model
+yhat <- predict(svm.fit, dat[-train,])
+#Confusion Matrix
+confusionMatrix(yhat, dat[-train,'y'])
+
+# developing a SVMmodel
+svm.fit <- svm(y ~., dat[train,], kernel='radial', gamma=1, cost=1e5)
+#plot
+plot(svm.fit, dat[train,])
+#Predicting using the best Model
+yhat <- predict(svm.fit, dat[-train,])
+#Confusion Matrix
+confusionMatrix(yhat, dat[-train,'y'])
+
+set.seed(1)
+#SVM Tuning
+tune.out <- tune(svm, y ~., data=dat[train,], 
+                 kernel='radial', 
+                 ranges = list(cost=c(0.1,1,10,100,1000),
+                               gamma=c(0.5, 1,2,3,4)))
+
+summary(tune.out)
+
+#Predicting using the best Model
+yhat <- predict(tune.out$best.model, dat[-train,])
+
+#Confusion Matrix
+confusionMatrix(yhat, dat[-train, 'y'])
